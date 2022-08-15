@@ -41,7 +41,7 @@ impl Client {
         //       the xcb impl probably needs to catch BadAtom as "missing"?
         let floating = conn.client_should_float(id, floating_classes);
         let accepts_focus = conn.client_accepts_focus(id);
-        let wm_name = conn.client_name(id).unwrap_or("unknown".into());
+        let wm_name = conn.client_name(id).unwrap_or_else(|_| "unknown".into());
 
         let wm_class = match conn.get_prop(id, Atom::WmClass.as_ref()) {
             Ok(Prop::UTF8String(strs)) => strs,

@@ -86,7 +86,7 @@ fn dwindle_recurisive(
         clients
             .get(0)
             .map(|c| vec![(c.id(), Some(*region))])
-            .unwrap_or(Vec::new())
+            .unwrap_or_else(Vec::new)
     }
 }
 
