@@ -41,12 +41,14 @@ pub mod config;
 pub mod data_types;
 pub mod helpers;
 pub mod hooks;
-pub mod layout;
 pub mod manager;
 pub mod ring;
 pub mod screen;
 pub mod workspace;
 pub mod xconnection;
+
+mod layout;
+pub use layout::*;
 
 #[doc(inline)]
 pub use bindings::{KeyEventHandler, MouseEventHandler};

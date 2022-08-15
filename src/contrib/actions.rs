@@ -5,11 +5,11 @@ use crate::{
         client::Client,
         data_types::RelativePosition,
         helpers::{spawn, spawn_for_output},
-        layout::Layout,
         manager::WindowManager,
         ring::Selector,
         workspace::Workspace,
         xconnection::XConn,
+        Layout,
     },
     Result,
 };

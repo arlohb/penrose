@@ -466,7 +466,13 @@ mod tests {
     use crate::core::{layout::*, ring::Direction, xconnection::MockXConn};
 
     fn test_layouts() -> Vec<Layout> {
-        vec![Layout::new("t", LayoutConf::default(), mock_layout, 1, 0.6)]
+        vec![Layout::new(
+            "t",
+            LayoutConf::default(),
+            layouts::mock_layout,
+            1,
+            0.6,
+        )]
     }
 
     fn add_n_clients(ws: &mut Workspace, n: usize) {

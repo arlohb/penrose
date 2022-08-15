@@ -13,16 +13,16 @@ use penrose::{
     contrib::{
         extensions::Scratchpad,
         hooks::{DefaultWorkspace, LayoutSymbolAsRootName},
-        layouts::paper,
     },
     core::{
         config::Config,
         helpers::index_selectors,
         hooks::Hook,
-        layout::{bottom_stack, side_stack, Layout, LayoutConf},
+        layouts::{bottom_stack, paper, side_stack},
         manager::WindowManager,
         ring::Selector,
         xconnection::{XConn, Xid},
+        Layout, LayoutConf,
     },
     logging_error_handler,
     xcb::{XcbConnection, XcbHooks},

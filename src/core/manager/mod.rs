@@ -1291,10 +1291,10 @@ mod tests {
         core::{
             data_types::*,
             helpers::logging_error_handler,
-            layout::*,
             ring::Direction::*,
             screen::*,
             xconnection::{MockXConn, Prop, XEvent},
+            Layout, LayoutConf,
         },
         draw::Color,
     };
@@ -1318,7 +1318,13 @@ mod tests {
             follow_focus,
             ..Default::default()
         };
-        vec![Layout::new("t", conf, mock_layout, 1, 0.6)]
+        vec![Layout::new(
+            "t",
+            conf,
+            crate::core::layouts::mock_layout,
+            1,
+            0.6,
+        )]
     }
 
     fn test_screens() -> Vec<Screen> {

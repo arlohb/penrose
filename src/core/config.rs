@@ -1,6 +1,6 @@
 //! User facing configuration of the penrose [WindowManager][crate::core::manager::WindowManager].
 use crate::{
-    core::layout::{side_stack, Layout, LayoutConf},
+    core::{layouts::side_stack, Layout, LayoutConf},
     draw::{Color, DrawError},
 };
 

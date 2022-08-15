@@ -10,10 +10,11 @@ use penrose::{
     core::{
         client::Client,
         config::Config,
-        layout::{floating, side_stack, LayoutFunc},
+        layouts,
         manager::WindowManager,
         screen::Screen,
         xconnection::{Atom, Prop, Result, XError, XEvent, Xid},
+        LayoutFunc,
     },
     logging_error_handler,
 };
@@ -86,8 +87,8 @@ __impl_stub_xcon! {
 
 fn layout_funcs() -> HashMap<&'static str, LayoutFunc> {
     map! {
-        "[side]" => side_stack as LayoutFunc,
-        "[----]" => floating as LayoutFunc,
+        "[side]" => layouts::side_stack as LayoutFunc,
+        "[----]" => layouts::floating as LayoutFunc,
     }
 }
 

@@ -2,12 +2,13 @@ use penrose::{
     core::{
         bindings::{KeyBindings, KeyCode, KeyEventHandler},
         data_types::Region,
-        layout::*,
+        layouts,
         manager::WindowManager,
         ring::Selector,
         screen::Screen,
         workspace::Workspace,
         xconnection::XConn,
+        Layout, LayoutConf,
     },
     Forward,
 };
@@ -38,7 +39,13 @@ pub fn simple_screen(n: usize) -> Screen {
 }
 
 fn layouts() -> Vec<Layout> {
-    vec![Layout::new("t", LayoutConf::default(), side_stack, 1, 0.6)]
+    vec![Layout::new(
+        "t",
+        LayoutConf::default(),
+        layouts::side_stack,
+        1,
+        0.6,
+    )]
 }
 
 pub fn test_bindings<X: XConn>() -> KeyBindings<X> {
