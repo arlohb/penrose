@@ -1077,7 +1077,7 @@ impl<X: XConn> WindowManager<X> {
             let wix = self.clients.workspace_index_for_client(*id)?;
             self.screens.screen(&Selector::Condition(&|s| s.wix == wix))
         } else {
-            self.screens.screen(&selector)
+            self.screens.screen(selector)
         }
     }
 
@@ -1123,7 +1123,7 @@ impl<X: XConn> WindowManager<X> {
             return Err(perror!("must have at least one workspace per screen"));
         }
 
-        let ws = self.workspaces.remove_workspace(&selector)?;
+        let ws = self.workspaces.remove_workspace(selector)?;
         ws.iter().try_for_each(|c| self.remove_client(*c))?;
 
         // Focus the workspace before the one we just removed. There is always at least one

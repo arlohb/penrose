@@ -372,7 +372,7 @@ impl<T> Ring<T> {
 
 impl<T: PartialEq> Ring<T> {
     pub fn equivalent_selectors(&self, s: &Selector<'_, T>, t: &Selector<'_, T>) -> bool {
-        match (self.element(&s), self.element(&t)) {
+        match (self.element(s), self.element(t)) {
             (Some(e), Some(f)) => e == f,
             _ => false,
         }

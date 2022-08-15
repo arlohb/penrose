@@ -53,7 +53,7 @@ impl XcbConnection {
     /// Get a handle on the underlying [XCB Connection][::xcb::Connection] used by [Api]
     /// to communicate with the X server.
     pub fn xcb_connection(&self) -> &xcb::Connection {
-        &self.api.conn()
+        self.api.conn()
     }
 
     /// Get a handle on the underlying [Api] to communicate with the X server.
@@ -68,7 +68,7 @@ impl XcbConnection {
 
     /// The current interned [Atom] values known to the underlying [Api] connection
     pub fn known_atoms(&self) -> &HashMap<Atom, u32> {
-        &self.api.known_atoms()
+        self.api.known_atoms()
     }
 }
 
@@ -76,12 +76,12 @@ impl WindowManager<XcbConnection> {
     /// Get a handle on the underlying XCB Connection used by [Api] to communicate with the X
     /// server.
     pub fn xcb_connection(&self) -> &xcb::Connection {
-        &self.conn().xcb_connection()
+        self.conn().xcb_connection()
     }
 
     /// The current interned [Atom] values known to the underlying [XcbConnection]
     pub fn known_atoms(&self) -> &HashMap<Atom, u32> {
-        &self.conn().known_atoms()
+        self.conn().known_atoms()
     }
 }
 

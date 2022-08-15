@@ -43,7 +43,7 @@ impl Fold for DefaultImplRewriter {
         if let Expr::Path(ref p) = *m.receiver {
             if let Some(ident) = p.path.get_ident() {
                 if ident == "self" && self.0.contains(&m.method.to_string()) {
-                    let mut stub = m.clone();
+                    let mut stub = m;
                     stub.method = format_ident!("{}_{}", STUB_METHOD_PREFIX, stub.method);
                     return stub;
                 }

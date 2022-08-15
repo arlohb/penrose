@@ -51,7 +51,7 @@ impl XcbDraw {
     /// Get a handle on the underlying [XCB Connection][::xcb::Connection] used by [Api]
     /// to communicate with the X server.
     pub fn xcb_connection(&self) -> &xcb::Connection {
-        &self.api.conn()
+        self.api.conn()
     }
 
     /// Get an immutable handle on the underlying [Api] to communicate with the X server.
@@ -245,7 +245,7 @@ impl DrawContext for XcbDrawContext {
         if let Some(ref font) = self.font {
             layout.set_font_description(Some(font));
         }
-        layout.set_text(&s);
+        layout.set_text(s);
         let (w, h) = layout.pixel_size();
 
         Ok((w as f64, h as f64))

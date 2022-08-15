@@ -4,10 +4,8 @@ use crate::{
         client::Client,
         data_types::Region,
         hooks::HookName,
-        layout::LayoutConf,
-        manager::{event::EventAction, util::pad_region},
+        manager::event::EventAction,
         ring::Selector,
-        workspace::ArrangeActions,
         xconnection::{
             Atom, ClientMessageKind, Prop, XClientConfig, XClientHandler, XClientProperties,
             XEventHandler, XState, Xid,
@@ -58,7 +56,7 @@ impl Clients {
     pub fn client(&self, selector: &Selector<'_, Client>) -> Option<&Client> {
         match selector {
             Selector::Focused | Selector::Any => self.focused_client(),
-            Selector::WinId(id) => self.inner.get(&id),
+            Selector::WinId(id) => self.inner.get(id),
             Selector::Condition(f) => self.inner.iter().find(|(_, v)| f(v)).map(|(_, v)| v),
             Selector::Index(i) => self.inner.iter().nth(*i).map(|(_, c)| c),
         }
@@ -67,7 +65,7 @@ impl Clients {
     pub fn client_mut(&mut self, selector: &Selector<'_, Client>) -> Option<&mut Client> {
         match selector {
             Selector::Focused | Selector::Any => self.focused_client_mut(),
-            Selector::WinId(id) => self.inner.get_mut(&id),
+            Selector::WinId(id) => self.inner.get_mut(id),
             Selector::Condition(f) => self.inner.iter_mut().find(|(_, v)| f(v)).map(|(_, v)| v),
             Selector::Index(i) => self.inner.iter_mut().nth(*i).map(|(_, c)| c),
         }
@@ -77,7 +75,7 @@ impl Clients {
         let mut clients: Vec<&Client> = match selector {
             Selector::Any => self.inner.values().collect(),
             Selector::Focused => self.focused_client().into_iter().collect(),
-            Selector::WinId(id) => self.inner.get(&id).into_iter().collect(),
+            Selector::WinId(id) => self.inner.get(id).into_iter().collect(),
             Selector::Condition(f) => self.inner.values().filter(|v| f(v)).collect(),
             _ => self.client(selector).into_iter().collect(),
         };
@@ -90,7 +88,7 @@ impl Clients {
         let mut clients: Vec<&mut Client> = match selector {
             Selector::Any => self.inner.values_mut().collect(),
             Selector::Focused => self.focused_client_mut().into_iter().collect(),
-            Selector::WinId(id) => self.inner.get_mut(&id).into_iter().collect(),
+            Selector::WinId(id) => self.inner.get_mut(id).into_iter().collect(),
             Selector::Condition(f) => self.inner.values_mut().filter(|v| f(v)).collect(),
             _ => self.client_mut(selector).into_iter().collect(),
         };
@@ -164,10 +162,6 @@ impl Clients {
     // of that particular [Client].
     pub fn workspace_index_for_client(&self, id: Xid) -> Option<usize> {
         self.inner.get(&id).map(|c| c.workspace())
-    }
-
-    pub fn clients_for_workspace(&self, wix: usize) -> Vec<&Client> {
-        self.matching_clients(&Selector::Condition(&|c: &Client| c.workspace == wix))
     }
 
     pub fn clients_for_ids(&self, ids: &[Xid]) -> Vec<&Client> {
@@ -261,37 +255,6 @@ impl Clients {
         Ok(EventAction::RunHook(HookName::ClientNameUpdated(
             id, name, is_root,
         )))
-    }
-
-    pub fn apply_arrange_actions<X>(
-        &mut self,
-        actions: ArrangeActions,
-        lc: &LayoutConf,
-        border_px: u32,
-        gap_px: u32,
-        conn: &X,
-    ) -> Result<()>
-    where
-        X: XClientHandler + XClientConfig,
-    {
-        // Tile first then place floating clients on top
-        for (id, region) in actions.actions {
-            trace!(id, ?region, "positioning client");
-            if let Some(region) = region {
-                let reg = pad_region(&region, lc.gapless, gap_px, border_px);
-                conn.position_client(id, reg, border_px, false)?;
-                self.map_if_needed(id, conn)?;
-            } else {
-                self.unmap_if_needed(id, conn)?;
-            }
-        }
-
-        for id in actions.floating {
-            debug!(id, "mapping floating client above tiled");
-            conn.raise_client(id)?;
-        }
-
-        Ok(())
     }
 
     pub fn toggle_fullscreen<X>(

@@ -67,9 +67,9 @@ impl Workspaces {
 
     pub fn workspace(&self, selector: &Selector<'_, Workspace>) -> Option<&Workspace> {
         if let Selector::WinId(id) = selector {
-            self.inner.iter().find(|ws| ws.client_ids().contains(&id))
+            self.inner.iter().find(|ws| ws.client_ids().contains(id))
         } else {
-            self.inner.element(&selector)
+            self.inner.element(selector)
         }
     }
 
@@ -77,9 +77,9 @@ impl Workspaces {
         if let Selector::WinId(id) = selector {
             self.inner
                 .iter_mut()
-                .find(|ws| ws.client_ids().contains(&id))
+                .find(|ws| ws.client_ids().contains(id))
         } else {
-            self.inner.element_mut(&selector)
+            self.inner.element_mut(selector)
         }
     }
 
@@ -87,11 +87,11 @@ impl Workspaces {
         if let Selector::WinId(id) = selector {
             self.inner
                 .iter()
-                .find(|ws| ws.client_ids().contains(&id))
+                .find(|ws| ws.client_ids().contains(id))
                 .into_iter()
                 .collect()
         } else {
-            self.inner.all_elements(&selector)
+            self.inner.all_elements(selector)
         }
     }
 
@@ -102,11 +102,11 @@ impl Workspaces {
         if let Selector::WinId(id) = selector {
             self.inner
                 .iter_mut()
-                .find(|ws| ws.client_ids().contains(&id))
+                .find(|ws| ws.client_ids().contains(id))
                 .into_iter()
                 .collect()
         } else {
-            self.inner.all_elements_mut(&selector)
+            self.inner.all_elements_mut(selector)
         }
     }
 
@@ -156,7 +156,7 @@ impl Workspaces {
 
     pub fn remove_workspace(&mut self, selector: &Selector<'_, Workspace>) -> Result<Workspace> {
         self.inner
-            .remove(&selector)
+            .remove(selector)
             .ok_or_else(|| perror!("unknown workspace"))
     }
 
@@ -256,7 +256,7 @@ impl Workspaces {
     ) -> Result<()> {
         self.inner
             .iter_mut()
-            .try_for_each(|ws| ws.restore_layout_functions(&layout_funcs))
+            .try_for_each(|ws| ws.restore_layout_functions(layout_funcs))
     }
 }
 

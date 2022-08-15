@@ -371,7 +371,7 @@ macro_rules! __with_builder_and_getters {
                     self.inner.$intofield = val.into();
                     self
                 })?
-                $(pub fn $tryfield<T>(&mut self, val: T) -> crate::Result<&mut $builder_name>
+                $(pub fn $tryfield<T>(&mut self, val: T) -> $crate::Result<&mut $builder_name>
                 where
                     T: TryInto<$tryty, Error=$errty>,
                 {

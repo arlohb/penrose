@@ -107,8 +107,7 @@ where
 
     let is_fullscreen = |data: &[u32]| {
         data.iter()
-            .map(|&a| conn.atom_name(a))
-            .flatten()
+            .flat_map(|&a| conn.atom_name(a))
             .any(|s| s == Atom::NetWmStateFullscreen.as_ref())
     };
 
