@@ -17,12 +17,6 @@ use nix::sys::signal::{signal, SigHandler, Signal};
 use std::{cell::Cell, fmt};
 use tracing::Level;
 
-#[cfg(feature = "serde")]
-use crate::core::{helpers::logging_error_handler, layout::LayoutFunc};
-
-#[cfg(feature = "serde")]
-use std::collections::HashMap;
-
 mod clients;
 mod event;
 mod layout;
@@ -36,11 +30,6 @@ use event::EventAction;
 use layout::{apply_layout, layout_visible};
 use screens::Screens;
 use workspaces::Workspaces;
-
-#[cfg(feature = "serde")]
-fn default_hooks<X: XConn>() -> Cell<Hooks<X>> {
-    Cell::new(Vec::new())
-}
 
 /// WindowManager is the primary struct / owner of the event loop for penrose.
 ///
@@ -60,20 +49,16 @@ fn default_hooks<X: XConn>() -> Cell<Hooks<X>> {
 /// directory in the Penrose repo.
 ///
 /// [1]: https://github.com/sminez/penrose/tree/develop/examples
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct WindowManager<X: XConn> {
     pub(super) conn: X,
     pub(super) config: Config,
     pub(super) clients: Clients,
     pub(super) screens: Screens,
     pub(super) workspaces: Workspaces,
-    #[cfg_attr(feature = "serde", serde(skip, default = "default_hooks"))]
     pub(super) hooks: Cell<Hooks<X>>,
     pub(super) previous_workspace: usize,
     pub(super) running: bool,
-    #[cfg_attr(feature = "serde", serde(skip, default = "logging_error_handler"))]
     pub(super) error_handler: ErrorHandler,
-    #[cfg_attr(feature = "serde", serde(skip))]
     pub(super) hydrated: bool,
 }
 
@@ -123,71 +108,6 @@ impl<X: XConn> WindowManager<X> {
             hydrated: true,
             error_handler,
         }
-    }
-
-    /// Restore missing state following serde deserialization.
-    ///
-    /// # Errors
-    /// The deserialized state will be checked and validated for internal consistency
-    /// and consistency with the current X server state using the deserialized [XConn].
-    /// If the state is not a valid snapshot then an error will be returned. Examples of invalid
-    /// state include:
-    ///   - Not providing a required layout function in `layout_funcs`
-    ///   - [Workspace] [Client] IDs not appearing in the [WindowManager] client_map
-    ///   - Being unable to connect to the X Server
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use penrose::{Result, map};
-    /// use penrose::{
-    ///     contrib::hooks::{SpawnRule, ClientSpawnRules},
-    ///     core::{
-    ///         hooks::Hooks,
-    ///         layout::{floating, side_stack, LayoutFunc},
-    ///         manager::WindowManager,
-    ///     },
-    ///     xcb::XcbConnection,
-    ///     logging_error_handler
-    /// };
-    ///
-    /// # fn example() -> Result<()> {
-    /// // Hooks that we want to set up on restart
-    /// let hooks: Hooks<_> = vec![
-    ///     ClientSpawnRules::new(vec![
-    ///         SpawnRule::ClassName("xterm-256color" , 3),
-    ///         SpawnRule::WMName("Firefox Developer Edition" , 7),
-    ///     ])
-    /// ];
-    ///
-    /// // The layout functions we were using previously
-    /// let layout_funcs = map! {
-    ///     "[side]" => side_stack as LayoutFunc,
-    ///     "[----]" => floating as LayoutFunc,
-    /// };
-    ///
-    /// let json_str = "...";  // Load in the serialized state from somewhere
-    /// let mut manager: WindowManager<XcbConnection> = serde_json::from_str(&json_str).unwrap();
-    /// assert!(manager.hydrate_and_init(hooks, logging_error_handler(), layout_funcs).is_ok());
-    /// # Ok(())
-    /// # }
-    /// ```
-    #[cfg(feature = "serde")]
-    #[tracing::instrument(level = "debug", err, skip(self, hooks, error_handler, layout_funcs))]
-    pub fn hydrate_and_init(
-        &mut self,
-        hooks: Hooks<X>,
-        error_handler: ErrorHandler,
-        layout_funcs: HashMap<&str, LayoutFunc>,
-    ) -> Result<()> {
-        self.conn.hydrate()?;
-        self.hooks.set(hooks);
-        self.error_handler = error_handler;
-        self.workspaces.restore_layout_functions(&layout_funcs)?;
-        util::validate_hydrated_wm_state(self)?;
-        self.hydrated = true;
-        self.init()?;
-        Ok(())
     }
 
     /// This initialises the [WindowManager] internal state but does not start processing any

@@ -7,7 +7,6 @@ use crate::core::xconnection::{Atom, Prop, WmHints, WmNormalHints, XClientProper
  * Primarily state flags and information used when determining which clients
  * to show for a given monitor and how they are tiled.
  */
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Client {
     pub(crate) id: Xid,

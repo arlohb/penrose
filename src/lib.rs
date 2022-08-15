@@ -139,10 +139,6 @@ extern crate bitflags;
 #[macro_use]
 extern crate tracing;
 
-#[cfg(feature = "serde")]
-#[macro_use]
-extern crate serde;
-
 #[macro_use]
 pub mod core;
 

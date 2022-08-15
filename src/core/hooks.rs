@@ -131,7 +131,6 @@ use crate::{
 /// triggered as the result of some other action that has taken place during execution.
 #[non_exhaustive]
 #[allow(missing_docs)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub enum HookName {
     Startup,

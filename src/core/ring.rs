@@ -11,7 +11,6 @@ use std::{
 };
 
 /// A direction to permute a Ring
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Direction {
     /// increase the index, wrapping if needed
@@ -31,7 +30,6 @@ impl Direction {
 }
 
 /// Where a given element should be inserted into a Ring
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum InsertPoint {
     /// At the specified index (last if out of bounds)
@@ -99,7 +97,6 @@ impl<'a, T> fmt::Debug for Selector<'a, T> {
  * Supports rotating the position of the elements and rotating which element
  * is focused independently of one another.
  */
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Ring<T> {
     elements: VecDeque<T>,

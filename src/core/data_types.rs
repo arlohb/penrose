@@ -12,7 +12,6 @@ pub type WinId = u32;
 
 /// A window type to be specified when creating a new window in the X server
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum WinType {
     /// A simple hidden stub window for facilitating other API calls
     CheckWin,
@@ -24,7 +23,6 @@ pub enum WinType {
 }
 
 /// A relative position along the horizontal and vertical axes
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum RelativePosition {
     /// Left of the current position
@@ -38,7 +36,6 @@ pub enum RelativePosition {
 }
 
 /// An x,y coordinate pair
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Point {
     /// An absolute x coordinate relative to the root window
@@ -63,7 +60,6 @@ impl Default for Point {
 /* Argument enums */
 
 /// Increment / decrement a value
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Change {
     /// increase the value
@@ -73,7 +69,6 @@ pub enum Change {
 }
 
 /// X window border kind
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Border {
     /// window is urgent
@@ -85,7 +80,6 @@ pub enum Border {
 }
 
 /// An X window / screen position: top left corner + extent
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Region {
     /// The x-coordinate of the top left corner of this region

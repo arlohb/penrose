@@ -511,11 +511,6 @@ impl<C: Connection> XState for X11rbConnection<C> {
 }
 
 impl<C: Connection> XConn for X11rbConnection<C> {
-    #[cfg(feature = "serde")]
-    fn hydrate(&mut self) -> Result<()> {
-        todo!()
-    }
-
     fn init(&self) -> Result<()> {
         self.set_client_attributes(self.root(), &[ClientAttr::RootEventMask])?;
         Ok(())

@@ -18,12 +18,6 @@ use crate::{
     Result,
 };
 
-#[cfg(feature = "serde")]
-use crate::{core::layout::LayoutFunc, PenroseError};
-
-#[cfg(feature = "serde")]
-use std::collections::HashMap;
-
 /// The list of resize actions and floating windows to be arranged by the window manager.
 #[derive(Debug)]
 pub struct ArrangeActions {
@@ -39,7 +33,6 @@ pub struct ArrangeActions {
 /// The parent WindowManager struct tracks which client is focused from the
 /// point of view of the X server by checking focus at the Workspace level
 /// whenever a new Workspace becomes active.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq)]
 pub struct Workspace {
     name: String,
@@ -70,27 +63,6 @@ impl Workspace {
 
     pub(crate) fn set_name(&mut self, name: impl Into<String>) {
         self.name = name.into();
-    }
-
-    #[cfg(feature = "serde")]
-    pub(crate) fn restore_layout_functions(
-        &mut self,
-        layout_funcs: &HashMap<&str, LayoutFunc>,
-    ) -> Result<()> {
-        self.layouts.iter_mut().try_for_each(|layout| {
-            let s = &layout.symbol;
-            match layout_funcs.get(s.as_str()) {
-                Some(f) => {
-                    layout.set_layout_function(*f);
-                    Ok(())
-                }
-                None => Err(PenroseError::HydrationState(format!(
-                    "'{}' is not a known layout symbol: {:?}",
-                    layout.symbol,
-                    layout_funcs.keys()
-                ))),
-            }
-        })
     }
 
     /// The number of clients currently on this workspace

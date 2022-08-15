@@ -114,9 +114,7 @@ pub fn test_mouse_bindings() -> TestMouseBindings {
     map! {}
 }
 
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct TestXConn {
-    #[cfg_attr(feature = "serde", serde(skip))]
     events: Cell<Vec<XEvent>>,
     focused: Cell<Xid>,
     n_screens: Cell<u32>,

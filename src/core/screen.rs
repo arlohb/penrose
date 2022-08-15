@@ -2,7 +2,6 @@
 use crate::core::data_types::{Point, Region};
 
 /// Display information for a connected screen
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct Screen {
     /// The current workspace index being displayed

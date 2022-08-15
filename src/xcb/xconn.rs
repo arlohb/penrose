@@ -34,7 +34,6 @@ use std::collections::HashMap;
  * of the underlying C XCB library.
  **/
 #[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct XcbConnection {
     check_win: Xid,
     api: Api,
@@ -93,11 +92,6 @@ crate::__xcb_impl_xeventhandler!(XcbConnection);
 crate::__xcb_impl_xstate!(XcbConnection);
 
 impl XConn for XcbConnection {
-    #[cfg(feature = "serde")]
-    fn hydrate(&mut self) -> Result<()> {
-        Ok(self.api.hydrate()?)
-    }
-
     fn init(&self) -> Result<()> {
         Ok(self
             .api

@@ -12,7 +12,6 @@ use std::convert::TryFrom;
 ///
 /// The variant names and data have developed with the reference xcb implementation in mind but
 /// should be applicable for all back ends.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum XEvent {
     /// A message has been sent to a particular client
@@ -142,7 +141,6 @@ impl ClientMessageKind {
 }
 
 /// Event masks used when sending client events
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum ClientEventMask {
     /// Substructure Notify
@@ -152,7 +150,6 @@ pub enum ClientEventMask {
 }
 
 /// The raw data contained in a [`ClientMessage`]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ClientMessageData {
     /// Slice of u8
@@ -217,7 +214,6 @@ __impl_client_message_data!(u16; 10, ClientMessageData::U16, as_u16);
 __impl_client_message_data!(u32; 5, ClientMessageData::U32, as_u32);
 
 /// A client message that needs to be parsed and handled based on its type
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ClientMessage {
     /// The ID of the window that sent the message
@@ -252,7 +248,6 @@ impl ClientMessage {
 }
 
 /// A configure request or notification when a client changes position or size
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ConfigureEvent {
     /// The ID of the window that had a property changed
@@ -264,7 +259,6 @@ pub struct ConfigureEvent {
 }
 
 /// A notification that a window has become visible
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ExposeEvent {
     /// The ID of the window that has become exposed
@@ -276,7 +270,6 @@ pub struct ExposeEvent {
 }
 
 /// A notification that the mouse pointer has entered or left a window
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PointerChange {
     /// The ID of the window that was entered
@@ -288,7 +281,6 @@ pub struct PointerChange {
 }
 
 /// A property change on a known client
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct PropertyEvent {
     /// The ID of the window that had a property changed

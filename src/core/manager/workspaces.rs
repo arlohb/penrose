@@ -15,17 +15,9 @@ use crate::{
 
 use std::ops::{Deref, DerefMut};
 
-#[cfg(feature = "serde")]
-use std::collections::HashMap;
-
-#[cfg(feature = "serde")]
-use crate::core::layout::LayoutFunc;
-
 #[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Workspaces {
     inner: Ring<Workspace>,
-    pub(super) previous_workspace: usize,
     client_insert_point: InsertPoint,
     main_ratio_step: f32,
 }
@@ -48,7 +40,6 @@ impl Workspaces {
     pub fn new(workspaces: Vec<Workspace>, main_ratio_step: f32) -> Self {
         Self {
             inner: Ring::new(workspaces),
-            previous_workspace: 0,
             client_insert_point: InsertPoint::First,
             main_ratio_step,
         }
@@ -247,16 +238,6 @@ impl Workspaces {
 
     pub fn focused_client(&self, ix: usize) -> Option<Xid> {
         self.inner[ix].focused_client()
-    }
-
-    #[cfg(feature = "serde")]
-    pub fn restore_layout_functions(
-        &mut self,
-        layout_funcs: &HashMap<&str, LayoutFunc>,
-    ) -> Result<()> {
-        self.inner
-            .iter_mut()
-            .try_for_each(|ws| ws.restore_layout_functions(layout_funcs))
     }
 }
 

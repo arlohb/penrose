@@ -97,7 +97,6 @@ pub type Result<T> = std::result::Result<T, XError>;
 
 /// On screen configuration options for X clients (not all are curently implemented)
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub enum ClientConfig {
     /// The border width in pixels
     BorderPx(u32),
@@ -108,7 +107,6 @@ pub enum ClientConfig {
 }
 
 /// Attributes for an X11 client window (not all are curently implemented)
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum ClientAttr {
     /// Border color as an argb hex value
@@ -428,11 +426,6 @@ pub trait XKeyboardHandler {
 pub trait XConn:
     XState + XEventHandler + XClientHandler + XClientProperties + XClientConfig + Sized
 {
-    /// Hydrate this XConn to restore internal state following serde deserialization
-    #[cfg(feature = "serde")]
-    #[stub(Ok(()))]
-    fn hydrate(&mut self) -> Result<()>;
-
     /// Initialise any state required before this connection can be used by the WindowManager.
     ///
     /// This must include checking to see if another window manager is running and return an error
@@ -614,10 +607,8 @@ mod mock_conn {
     use super::*;
     use std::{cell::Cell, fmt};
 
-    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     pub struct MockXConn {
         screens: Vec<Screen>,
-        #[cfg_attr(feature = "serde", serde(skip))]
         events: Cell<Vec<XEvent>>,
         focused: Cell<Xid>,
         unmanaged_ids: Vec<Xid>,

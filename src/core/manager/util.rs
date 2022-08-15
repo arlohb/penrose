@@ -6,12 +6,6 @@ use crate::{
     Result,
 };
 
-#[cfg(feature = "serde")]
-use crate::{
-    core::{manager::WindowManager, xconnection::XConn},
-    PenroseError,
-};
-
 pub(super) fn pad_region(region: &Region, gapless: bool, gap_px: u32, border_px: u32) -> Region {
     let gpx = if gapless { 0 } else { gap_px };
     let padding = 2 * (border_px + gpx);
@@ -57,49 +51,6 @@ where
     };
 
     Ok(conn.position_client(id, reg, border_px, false)?)
-}
-
-#[cfg(feature = "serde")]
-pub(super) fn validate_hydrated_wm_state<X>(wm: &mut WindowManager<X>) -> Result<()>
-where
-    X: XConn,
-{
-    // If the current clients known to the X server aren't what we have in the client_map
-    // then we can't proceed any further
-    let active_clients = wm.conn.active_clients()?;
-    let mut missing_ids: Vec<Xid> = wm
-        .clients
-        .all_known_ids()
-        .iter()
-        .filter(|id| !active_clients.contains(id))
-        .cloned()
-        .collect();
-
-    if !missing_ids.is_empty() {
-        missing_ids.sort_unstable();
-        return Err(PenroseError::MissingClientIds(missing_ids));
-    }
-
-    // Workspace clients all need to be present in the client_map
-    wm.workspaces.iter().try_for_each(|w| {
-        if w.iter().all(|id| wm.clients.is_known(*id)) {
-            Ok(())
-        } else {
-            Err(PenroseError::HydrationState(
-                "one or more workspace clients we not in known client state".into(),
-            ))
-        }
-    })?;
-
-    // If current focused client is not in the client_map then it was most likely being
-    // managed by a user defined hook.
-    if let Some(id) = wm.clients.focused_client_id() {
-        if !wm.clients.is_known(id) {
-            wm.clients.clear_focused()
-        }
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]

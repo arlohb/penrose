@@ -9,7 +9,6 @@ use crate::{
 
 /// Know property types that should be returnable by XConn impls when they check
 /// window properties.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum Prop {
     /// One or more X Atoms
@@ -30,7 +29,6 @@ pub enum Prop {
 
 bitflags! {
     /// Possible flags that can be set in a WmHints client property
-    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[derive(Default)]
     pub struct WmHintsFlags: u32 {
         /// Input hint is set
@@ -55,7 +53,6 @@ bitflags! {
 
 bitflags! {
     /// Possible flags that can be set in a WmNormalHints client property
-    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[derive(Default)]
     pub struct WmNormalHintsFlags: u32 {
         /// User-specified x, y
@@ -86,7 +83,6 @@ bitflags! {
 /// See the [ICCCM docs][1] for more information.
 ///
 /// [1]: https://tronche.com/gui/x/icccm/sec-4.html#s-4.1.3.1
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum WindowState {
     /// Window is not visible
@@ -98,7 +94,6 @@ pub enum WindowState {
 }
 
 /// The mapping states a window can be in
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum MapState {
     /// The window is unmapped
@@ -110,7 +105,6 @@ pub enum MapState {
 }
 
 /// The input class for a window
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum WindowClass {
     /// Class is copied from parent window
@@ -126,7 +120,6 @@ pub enum WindowClass {
 /// See the ICCCM [spec][1] for further details.
 ///
 /// [1]: https://www.x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html#wm_hints_property
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct WmHints {
     pub(crate) flags: WmHintsFlags,
@@ -226,7 +219,6 @@ impl WmHints {
 ///
 /// [1]: https://www.x.org/releases/X11R7.6/doc/xorg-docs/specs/ICCCM/icccm.html#wm_normal_hints_property
 /// [2]: https://tronche.com/gui/x/xlib/ICC/client-to-window-manager/wm-normal-hints.html
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct WmNormalHints {
     pub(crate) flags: WmNormalHintsFlags,
@@ -343,7 +335,6 @@ impl WmNormalHints {
 ///     uint8_t        pad0[2];
 /// } xcb_get_window_attributes_reply_t;
 /// ```
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct WindowAttributes {
     pub(crate) override_redirect: bool,

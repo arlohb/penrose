@@ -22,7 +22,6 @@ use std::str::FromStr;
 /// [1]: crate::core::manager::WindowManager
 /// [2]: crate::core::xconnection::XConn
 #[non_exhaustive]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[must_use = "Generated event actions must be handled"]
 #[derive(Debug, PartialEq, Eq)]
 pub enum EventAction {

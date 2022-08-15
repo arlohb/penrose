@@ -13,7 +13,6 @@ use crate::{
 use tracing::{debug, info, trace};
 
 #[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Screens {
     pub(super) inner: Ring<Screen>,
     bar_height: u32,

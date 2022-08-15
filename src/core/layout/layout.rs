@@ -10,7 +10,6 @@ use std::{cmp, fmt};
 ///
 /// The default layout config that only triggers when clients are added / removed and follows user
 /// defined config options.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
 pub struct LayoutConf {
     /// If true, this layout function will not be called to produce resize actions
@@ -57,14 +56,12 @@ pub type LayoutFunc = fn(&[&Client], Option<Xid>, &Region, u32, f32) -> Vec<Resi
 /// which should determine the relative size of the main area compared to other cliens.  Layouts
 /// maintain their own state for number of clients in the main area and ratio which will be passed
 /// through to the layout function when it is called.
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Clone)]
 pub struct Layout {
     pub(crate) conf: LayoutConf,
     pub(crate) symbol: String,
     max_main: u32,
     ratio: f32,
-    #[cfg_attr(feature = "serde", serde(skip))]
     f: Option<LayoutFunc>,
 }
 
@@ -122,13 +119,6 @@ impl Layout {
             max_main: 1,
             ratio: 1.0,
         }
-    }
-
-    // NOTE: Used when rehydrating from serde based deserialization. The layout will panic if
-    //       used before setting the LayoutFunc. See [WindowManager::hydrate_and_init]
-    #[cfg(feature = "serde")]
-    pub(crate) fn set_layout_function(&mut self, f: LayoutFunc) {
-        self.f = Some(f);
     }
 
     /// Apply the layout function held by this `Layout` using the current max_main and ratio

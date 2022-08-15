@@ -29,12 +29,6 @@ pub type ReverseCodeMap = HashMap<(KeyCodeMask, KeyCodeValue), String>;
 const RANDR_MAJ: u32 = 1;
 const RANDR_MIN: u32 = 2;
 
-#[cfg(feature = "serde")]
-fn default_conn() -> xcb::Connection {
-    let (conn, _) = xcb::Connection::connect(None).expect("unable to connect using XCB");
-    conn
-}
-
 /**
  * Use `xmodmap -pke` to determine the user's current keymap to allow for mapping X KeySym values
  * to their string representation on the user's system.
@@ -70,9 +64,7 @@ pub fn code_map_from_xmodmap() -> Result<ReverseCodeMap> {
 }
 
 /// A connection to the X server using the XCB C API
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 pub struct Api {
-    #[cfg_attr(feature = "serde", serde(skip, default = "default_conn"))]
     conn: xcb::Connection,
     root: Xid,
     randr_base: u8,
@@ -536,12 +528,6 @@ impl Api {
             // NOTE: ignoring other event types
             _ => None,
         })
-    }
-
-    /// Hydrate this XcbApi to restore internal state following serde deserialization
-    #[cfg(feature = "serde")]
-    pub fn hydrate(&mut self) -> Result<()> {
-        self.init()
     }
 
     /// Intern an atom by name, returning the corresponding id.

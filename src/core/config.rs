@@ -21,7 +21,6 @@ __with_builder_and_getters! {
     /// assert_eq!(config.border_px(), &2);
     /// assert_eq!(config.focused_border(), &Color::try_from("#cc241d").unwrap());
     /// ```
-    #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
     #[derive(Clone, Debug, PartialEq)]
     Config;
 

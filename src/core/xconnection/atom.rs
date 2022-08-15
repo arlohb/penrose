@@ -8,7 +8,6 @@ use strum::*;
 /// that they are passed by client code.
 ///
 /// [1]: crate::core::xconnection::XConn
-#[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(AsRefStr, EnumString, EnumIter, Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum Atom {
     /// ATOM
