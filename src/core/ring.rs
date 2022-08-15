@@ -101,7 +101,7 @@ impl<'a, T> fmt::Debug for Selector<'a, T> {
  */
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub(crate) struct Ring<T> {
+pub struct Ring<T> {
     elements: VecDeque<T>,
     focused: usize,
 }
@@ -116,6 +116,9 @@ impl<T> Default for Ring<T> {
 }
 
 impl<T> Ring<T> {
+    /// Creates a new `Ring<T>` with the given elements.
+    ///
+    /// The focused element will be the first element in the collection.
     pub fn new(elements: Vec<T>) -> Ring<T> {
         Ring {
             elements: elements.into(),
@@ -123,6 +126,7 @@ impl<T> Ring<T> {
         }
     }
 
+    /// Check whether moving a direction would wrap around the ring.
     pub fn would_wrap(&self, dir: Direction) -> bool {
         let wrap_back = self.focused == 0 && dir == Direction::Backward;
         let wrap_forward = self.focused == self.elements.len() - 1 && dir == Direction::Forward;
@@ -130,26 +134,36 @@ impl<T> Ring<T> {
         wrap_back || wrap_forward
     }
 
+    /// Gets the index of the focused element.
     pub fn focused_index(&self) -> usize {
         self.focused
     }
 
+    /// Gets the focused element, if it exists.
     pub fn focused(&self) -> Option<&T> {
         self.elements.get(self.focused)
     }
 
+    /// Gets the focused element.
+    ///
+    /// Only call if you're sure it exists, otherwise use `focused()`.
     pub fn focused_unchecked(&self) -> &T {
         &self.elements[self.focused]
     }
 
+    /// Mutably gets the focused element, if it exists.
     pub fn focused_mut(&mut self) -> Option<&mut T> {
         self.elements.get_mut(self.focused)
     }
 
+    /// Mutably gets the focused element.
+    ///
+    /// Only call if you're sure it exists, otherwise use `focused_mut()`.
     pub fn focused_mut_unchecked(&mut self) -> &mut T {
         &mut self.elements[self.focused]
     }
 
+    /// Rotates all elements in the ring in the given direction.
     pub fn rotate(&mut self, direction: Direction) {
         if self.elements.is_empty() {
             return;
@@ -160,6 +174,7 @@ impl<T> Ring<T> {
         }
     }
 
+    /// Gets the next focused index in the given direction.
     fn next_index(&self, direction: Direction) -> usize {
         let max = self.elements.len() - 1;
         match direction {
@@ -180,11 +195,13 @@ impl<T> Ring<T> {
         }
     }
 
+    /// Moves the focused element in the given direction and returns the newly focused element.
     pub fn cycle_focus(&mut self, direction: Direction) -> Option<&T> {
         self.focused = self.next_index(direction);
         self.focused()
     }
 
+    /// Moves the focused element in the given direction and returns the moved element.
     pub fn drag_focused(&mut self, direction: Direction) -> Option<&T> {
         match (self.focused, self.next_index(direction), direction) {
             (0, _, Direction::Backward) => self.rotate(direction),
@@ -195,10 +212,17 @@ impl<T> Ring<T> {
         self.cycle_focus(direction)
     }
 
+    /// The number of elements in the ring.
     pub fn len(&self) -> usize {
         self.elements.len()
     }
 
+    /// Checks whether the ring is empty.
+    pub fn is_empty(&self) -> bool {
+        self.elements.is_empty()
+    }
+
+    /// Inserts the given element at the insert point.
     pub fn insert_at(&mut self, insert_point: &InsertPoint, element: T) {
         match insert_point {
             InsertPoint::Index(ix) => self.elements.insert(*ix, element),
@@ -216,54 +240,68 @@ impl<T> Ring<T> {
         }
     }
 
+    /// Insert an element at the given index.
+    ///
+    /// Panics if the index is out of bounds.
     pub fn insert(&mut self, index: usize, element: T) {
         self.elements.insert(index, element);
     }
 
+    /// Adds an element to the end of the ring.
     pub fn push(&mut self, element: T) {
         self.elements.push_back(element);
     }
 
+    /// Create an iterator over the elements in the ring.
     pub fn iter(&self) -> std::collections::vec_deque::Iter<'_, T> {
         self.elements.iter()
     }
 
+    /// Create a mutable iterator over the elements in the ring.
     pub fn iter_mut(&mut self) -> std::collections::vec_deque::IterMut<'_, T> {
         self.elements.iter_mut()
     }
 
+    /// Get the element at the given index.
     pub fn get(&self, index: usize) -> Option<&T> {
         self.elements.get(index)
     }
 
+    /// Mutably get the element at the given index.
     pub fn get_mut(&mut self, index: usize) -> Option<&mut T> {
         self.elements.get_mut(index)
     }
 
-    pub fn vec_map<F: FnMut(&T) -> U, U>(&self, f: F) -> Vec<U> {
+    /// Runs the given closure on each element in the ring and returns as a `Vec`.
+    pub fn vec_map<U>(&self, f: impl FnMut(&T) -> U) -> Vec<U> {
         self.elements.iter().map(f).collect()
     }
 
-    pub fn apply_to<F: FnMut(&mut T)>(&mut self, s: &Selector<'_, T>, mut f: F) {
+    /// Mutably runs the given closure on the first element that matches the selector.
+    pub fn apply_to(&mut self, s: &Selector<'_, T>, mut f: impl FnMut(&mut T)) {
         if let Some(index) = self.index(s) {
             f(&mut self.elements[index]);
         }
     }
 
+    /// Check if the focused index is within bounds, if not set it to the last.
     fn clamp_focus(&mut self) {
         if self.focused > 0 && self.focused >= self.elements.len() - 1 {
             self.focused -= 1;
         }
     }
 
+    /// Find the index and element of the first element that matches the condition.
     fn element_by(&self, cond: impl Fn(&T) -> bool) -> Option<(usize, &T)> {
         self.elements.iter().enumerate().find(|(_, e)| cond(*e))
     }
 
+    /// Find the index and mutable element of the first element that matches the condition.
     fn element_by_mut(&mut self, cond: impl Fn(&T) -> bool) -> Option<(usize, &mut T)> {
         self.elements.iter_mut().enumerate().find(|(_, e)| cond(*e))
     }
 
+    /// Finds the index of the first element that matches the given selector.
     pub fn index(&self, s: &Selector<'_, T>) -> Option<usize> {
         match s {
             Selector::WinId(_) => None, // ignored
@@ -279,10 +317,12 @@ impl<T> Ring<T> {
         }
     }
 
+    /// Find the index and element of the first element that matches the selector.
     pub fn indexed_element(&self, s: &Selector<'_, T>) -> Option<(usize, &T)> {
         self.index(s).map(|i| (i, &self.elements[i]))
     }
 
+    /// Returns the first element that matches the selector.
     pub fn element(&self, s: &Selector<'_, T>) -> Option<&T> {
         match s {
             Selector::Focused | Selector::Any => self.focused(),
@@ -292,6 +332,7 @@ impl<T> Ring<T> {
         }
     }
 
+    /// Mutably returns the first element that matches the selector.
     pub fn element_mut(&mut self, s: &Selector<'_, T>) -> Option<&mut T> {
         match s {
             Selector::Focused | Selector::Any => self.focused_mut(),
@@ -301,6 +342,7 @@ impl<T> Ring<T> {
         }
     }
 
+    /// Returns all elements that match the selector as a vec.
     pub fn all_elements(&self, s: &Selector<'_, T>) -> Vec<&T> {
         match s {
             Selector::Any => self.iter().collect(),
@@ -311,6 +353,7 @@ impl<T> Ring<T> {
         }
     }
 
+    /// Mutably returns all elements that match the selector as a vec.
     pub fn all_elements_mut(&mut self, s: &Selector<'_, T>) -> Vec<&mut T> {
         match s {
             Selector::Any => self.iter_mut().collect(),
@@ -321,6 +364,9 @@ impl<T> Ring<T> {
         }
     }
 
+    /// Focus the first element that matches the selector.
+    ///
+    /// Returns `true` if the focus was changed.
     pub fn focus(&mut self, s: &Selector<'_, T>) -> Option<(bool, &T)> {
         if self.index(s) == Some(self.focused) {
             return Some((false, &self.elements[self.focused]));
@@ -344,6 +390,7 @@ impl<T> Ring<T> {
         }
     }
 
+    /// Remove the first element that matches the selector, returning it.
     pub fn remove(&mut self, s: &Selector<'_, T>) -> Option<T> {
         match s {
             Selector::Focused | Selector::Any => {
@@ -371,6 +418,7 @@ impl<T> Ring<T> {
 }
 
 impl<T: PartialEq> Ring<T> {
+    /// Returns true if the selectors return the same element.
     pub fn equivalent_selectors(&self, s: &Selector<'_, T>, t: &Selector<'_, T>) -> bool {
         match (self.element(s), self.element(t)) {
             (Some(e), Some(f)) => e == f,
@@ -380,7 +428,7 @@ impl<T: PartialEq> Ring<T> {
 }
 
 impl<T: Clone> Ring<T> {
-    #[allow(dead_code)]
+    /// Clones all the elements, returning them as a vec.
     pub fn as_vec(&self) -> Vec<T> {
         self.iter().cloned().collect()
     }

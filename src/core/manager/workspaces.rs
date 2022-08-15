@@ -23,7 +23,7 @@ use crate::core::layout::LayoutFunc;
 
 #[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub(super) struct Workspaces {
+pub struct Workspaces {
     inner: Ring<Workspace>,
     pub(super) previous_workspace: usize,
     client_insert_point: InsertPoint,

@@ -14,7 +14,7 @@ use tracing::{debug, info, trace};
 
 #[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub(super) struct Screens {
+pub struct Screens {
     pub(super) inner: Ring<Screen>,
     bar_height: u32,
     top_bar: bool,

@@ -24,7 +24,9 @@ use crate::{core::layout::LayoutFunc, PenroseError};
 #[cfg(feature = "serde")]
 use std::collections::HashMap;
 
-pub(crate) struct ArrangeActions {
+/// The list of resize actions and floating windows to be arranged by the window manager.
+#[derive(Debug)]
+pub struct ArrangeActions {
     pub(crate) actions: Vec<ResizeAction>,
     pub(crate) floating: Vec<Xid>,
 }
@@ -258,7 +260,7 @@ impl Workspace {
         screen_region: Region,
         managed_workspace_clients: &[&Client],
     ) -> ArrangeActions {
-        if self.clients.len() > 0 {
+        if !self.clients.is_empty() {
             let layout = self.layouts.focused_unchecked();
             let (floating, tiled): (Vec<&Client>, Vec<&Client>) =
                 managed_workspace_clients.iter().partition(|c| c.floating);

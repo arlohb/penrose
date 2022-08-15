@@ -1,14 +1,15 @@
 /// This is where event parsing is handled and conversion of things like ICCCM and EWMH
 /// messages to penrose actions is done.
-use crate::core::{
-    bindings::{KeyCode, MouseEvent},
-    data_types::{Point, Region},
-    hooks::HookName,
-    manager::state::WmState,
-    xconnection::{
-        Atom, ClientMessage, ConfigureEvent, PointerChange, PropertyEvent, XAtomQuerier, XEvent,
-        Xid,
+use crate::{
+    core::{
+        bindings::{KeyCode, MouseEvent},
+        data_types::{Point, Region},
+        hooks::HookName,
+        xconnection::{
+            Atom, ClientMessage, ConfigureEvent, PointerChange, PropertyEvent, XConn, XEvent, Xid,
+        },
     },
+    WindowManager,
 };
 
 use std::str::FromStr;
@@ -67,10 +68,10 @@ pub enum EventAction {
     Unmap(Xid),
 }
 
-pub(super) fn process_next_event<X>(event: XEvent, state: &WmState, conn: &X) -> Vec<EventAction>
-where
-    X: XAtomQuerier,
-{
+pub(super) fn process_next_event<X: XConn>(
+    event: XEvent,
+    wm: &WindowManager<X>,
+) -> Vec<EventAction> {
     match event {
         // Direct 1-n mappings of XEvents -> EventActions
         XEvent::Destroy(id) => vec![EventAction::DestroyClient(id)],
@@ -87,27 +88,22 @@ where
         XEvent::UnmapNotify(id) => vec![EventAction::Unmap(id)],
 
         // Require processing based on current WindowManager state
-        XEvent::ClientMessage(msg) => process_client_message(state, conn, msg),
+        XEvent::ClientMessage(msg) => process_client_message(wm, msg),
         XEvent::ConfigureNotify(evt) => process_configure_notify(evt),
         XEvent::ConfigureRequest(evt) => process_configure_request(evt),
-        XEvent::Enter(p) => process_enter_notify(state, p),
-        XEvent::MapRequest(id, override_redirect) => {
-            process_map_request(state, id, override_redirect)
-        }
+        XEvent::Enter(p) => process_enter_notify(wm, p),
+        XEvent::MapRequest(id, override_redirect) => process_map_request(wm, id, override_redirect),
         XEvent::PropertyNotify(evt) => process_property_notify(evt),
     }
 }
 
-fn process_client_message<X>(_state: &WmState, conn: &X, msg: ClientMessage) -> Vec<EventAction>
-where
-    X: XAtomQuerier,
-{
+fn process_client_message<X: XConn>(wm: &WindowManager<X>, msg: ClientMessage) -> Vec<EventAction> {
     let data = msg.data();
     trace!(id = msg.id, dtype = ?msg.dtype, ?data, "got client message");
 
     let is_fullscreen = |data: &[u32]| {
         data.iter()
-            .flat_map(|&a| conn.atom_name(a))
+            .flat_map(|&a| wm.conn.atom_name(a))
             .any(|s| s == Atom::NetWmStateFullscreen.as_ref())
     };
 
@@ -144,13 +140,13 @@ fn process_configure_request(evt: ConfigureEvent) -> Vec<EventAction> {
     }
 }
 
-fn process_enter_notify(state: &WmState, p: PointerChange) -> Vec<EventAction> {
+fn process_enter_notify<X: XConn>(wm: &WindowManager<X>, p: PointerChange) -> Vec<EventAction> {
     let mut actions = vec![
         EventAction::ClientFocusGained(p.id),
         EventAction::SetScreenFromPoint(Some(p.abs)),
     ];
 
-    if let Some(current) = state.clients.focused_client_id() {
+    if let Some(current) = wm.clients.focused_client_id() {
         if current != p.id {
             actions.insert(0, EventAction::ClientFocusLost(current));
         }
@@ -162,8 +158,12 @@ fn process_enter_notify(state: &WmState, p: PointerChange) -> Vec<EventAction> {
 // Processing around map_request is currently copied from dwm:
 //   - if override_redirect is set we completely ignore the window
 //   - if the client is in the client_map (i.e. we are already managing this client) then ignore
-fn process_map_request(state: &WmState, id: Xid, override_redirect: bool) -> Vec<EventAction> {
-    if override_redirect || state.clients.is_known(id) {
+fn process_map_request<X: XConn>(
+    wm: &WindowManager<X>,
+    id: Xid,
+    override_redirect: bool,
+) -> Vec<EventAction> {
+    if override_redirect || wm.clients.is_known(id) {
         vec![]
     } else {
         vec![EventAction::MapWindow(id)]

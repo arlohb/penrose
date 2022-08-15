@@ -2,35 +2,27 @@ use crate::{
     core::{
         config::Config,
         hooks::HookName,
-        manager::{event::EventAction, state::WmState, util::pad_region},
-        xconnection::{XClientConfig, XClientHandler},
+        manager::{event::EventAction, util::pad_region},
+        xconnection::XConn,
     },
-    Result,
+    Result, WindowManager,
 };
 
-#[tracing::instrument(level = "trace", err, skip(conn))]
-pub(super) fn layout_visible<X>(state: &mut WmState, conn: &X) -> Result<Vec<EventAction>>
-where
-    X: XClientHandler + XClientConfig,
-{
-    state
-        .screens
+#[tracing::instrument(level = "trace", err)]
+pub(super) fn layout_visible<X: XConn>(wm: &mut WindowManager<X>) -> Result<Vec<EventAction>> {
+    wm.screens
         .visible_workspaces()
         .into_iter()
-        .flat_map(|wix| apply_layout(state, conn, wix).transpose())
+        .flat_map(|wix| apply_layout(wm, wix).transpose())
         .collect()
 }
 
-#[tracing::instrument(level = "debug", err, skip(conn))]
-pub(super) fn apply_layout<X>(
-    state: &mut WmState,
-    conn: &X,
+#[tracing::instrument(level = "debug", err)]
+pub(super) fn apply_layout<X: XConn>(
+    wm: &mut WindowManager<X>,
     wix: usize,
-) -> Result<Option<EventAction>>
-where
-    X: XClientHandler + XClientConfig,
-{
-    let (i, s) = match state.screens.indexed_screen_for_workspace(wix) {
+) -> Result<Option<EventAction>> {
+    let (i, s) = match wm.screens.indexed_screen_for_workspace(wix) {
         Some((i, s)) => (i, s),
         None => return Ok(None),
     };
@@ -40,30 +32,28 @@ where
         border_px,
         gap_px,
         ..
-    } = state.config;
+    } = wm.config;
 
-    let (lc, aa) = state.workspaces.get_arrange_actions(
+    let (lc, aa) = wm.workspaces.get_arrange_actions(
         wix,
         s.region(show_bar),
-        &state
-            .clients
-            .clients_for_ids(&state.workspaces[wix].client_ids()),
+        &wm.clients.clients_for_ids(&wm.workspaces[wix].client_ids()),
     )?;
 
     for (id, region) in aa.actions {
         trace!(id, ?region, "positioning client");
         if let Some(region) = region {
             let reg = pad_region(&region, lc.gapless, gap_px, border_px);
-            conn.position_client(id, reg, border_px, false)?;
-            state.clients.map_if_needed(id, conn)?;
+            wm.conn.position_client(id, reg, border_px, false)?;
+            wm.clients.map_if_needed(id, &wm.conn)?;
         } else {
-            state.clients.unmap_if_needed(id, conn)?;
+            wm.clients.unmap_if_needed(id, &wm.conn)?;
         }
     }
 
     for id in aa.floating {
         debug!(id, "mapping floating client above tiled");
-        conn.raise_client(id)?;
+        wm.conn.raise_client(id)?;
     }
 
     Ok(Some(EventAction::RunHook(HookName::LayoutApplied(wix, i))))

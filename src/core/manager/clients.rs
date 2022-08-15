@@ -19,7 +19,7 @@ use tracing::{trace, warn};
 
 #[derive(Debug)]
 #[cfg_attr(feature = "serde", derive(Serialize, Deserialize))]
-pub(super) struct Clients {
+pub struct Clients {
     inner: HashMap<Xid, Client>,
     focused_client_id: Option<Xid>,
     focused_border: Color,
