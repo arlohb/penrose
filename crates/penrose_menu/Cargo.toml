@@ -5,6 +5,6 @@ authors = ["IDAM <innes.andersonmorrison@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-fuzzy-matcher = "0.3.7"
-log = "0.4.14"
+fuzzy-matcher = "0.3"
+log = "0.4"
 penrose = { path = "../../" }

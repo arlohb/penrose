@@ -14,13 +14,13 @@ keywords = [ "windowmanager", "window", "manager", "x11", "procmacro" ]
 proc-macro = true
 
 [dev-dependencies]
-trybuild = "1.0.56"
+trybuild = "1.0"
 
 [dependencies]
-syn = { version = "1.0.86", features = ["fold", "full"] }
-quote = "1.0.15"
-proc-macro2 = "1.0.36"
+syn = { version = "1.0", features = ["fold", "full"] }
+quote = "1.0"
+proc-macro2 = "1.0"
 
 penrose_keysyms = { version = "0.1.1", path = "../penrose_keysyms" }
-strum = "0.24.0"
-rustversion = "1.0.6"
+strum = "0.24"
+rustversion = "1.0"
