@@ -76,6 +76,7 @@ pub fn new_xcb_backed_window_manager(
     Ok(wm)
 }
 
+#[cfg(feature = "xcb_draw")]
 /// Construct a new [StatusBar] using the default [dwm_bar] configuration, backed by [XcbDraw]
 pub fn new_xcb_backed_status_bar(
     height: usize,

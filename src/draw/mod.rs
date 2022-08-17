@@ -54,7 +54,7 @@ pub enum DrawError {
 
     /// An attempt to use the cairo C API failed when using an XCB implementation
     /// of [Draw] or [DrawContext]
-    #[cfg(feature = "xcb")]
+    #[cfg(feature = "xcb_draw")]
     #[error("Error calling Cairo API: {0}")]
     Cairo(#[from] cairo::Error),
 }
