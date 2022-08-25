@@ -52,14 +52,21 @@ fn main() -> Result<()> {
         .expect("failed to init logging");
 
     // Created at startup. See keybindings below for how to access them
-    let mut config_builder = Config::default().builder();
-    config_builder
-        .workspaces(vec!["1", "2", "3", "4", "5", "6", "7", "8", "9"])
+    let mut config = Config {
+        workspaces: vec!["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect(),
         // Windows with a matching WM_CLASS will always float
-        .floating_classes(vec!["dmenu", "dunst", "polybar"])
+        floating_classes: vec!["dmenu", "dunst", "polybar"]
+            .into_iter()
+            .map(|s| s.to_string())
+            .collect(),
         // Client border colors are set based on X focus
-        .focused_border("#cc241d")?
-        .unfocused_border("#3c3836")?;
+        focused_border: "#cc241d".try_into().unwrap(),
+        unfocused_border: "#3c3836".try_into().unwrap(),
+        ..Default::default()
+    };
 
     // When specifying a layout, most of the time you will want LayoutConf::default() as shown
     // below, which will honour gap settings and will not be run on focus changes (only when
@@ -80,15 +87,15 @@ fn main() -> Result<()> {
 
     // Layouts to be used on each workspace. Currently all workspaces have the same set of Layouts
     // available to them, though they track modifications to n_main and ratio independently.
-    config_builder.layouts(vec![
+    config.layouts = vec![
         Layout::new("[side]", LayoutConf::default(), side_stack, n_main, ratio),
         Layout::new("[botm]", LayoutConf::default(), bottom_stack, n_main, ratio),
         Layout::new("[papr]", follow_focus_conf, paper, n_main, ratio),
         Layout::floating("[----]"),
-    ]);
+    ];
 
     // Now build and validate the config
-    let config = config_builder.build().unwrap();
+    let config = config.validate()?;
 
     // NOTE: change these to programs that you have installed!
     let my_program_launcher = "dmenu_run";

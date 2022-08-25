@@ -1,98 +1,85 @@
 //! User facing configuration of the penrose [WindowManager][crate::core::manager::WindowManager].
+
 use crate::{
     core::{layouts::side_stack, Layout, LayoutConf},
-    draw::{Color, DrawError},
+    draw::Color,
+    PenroseError,
 };
 
-use std::convert::TryInto;
-
-__with_builder_and_getters! {
-    /// The main user facing configuration details.
-    ///
-    /// See [ConfigBuilder] for details of what can be overwritten.
-    ///
-    /// # Example
-    /// ```
-    /// use penrose::{Config, draw::Color};
-    /// use std::convert::TryFrom;
-    ///
-    /// let config = Config::default();
-    ///
-    /// assert_eq!(config.border_px(), &2);
-    /// assert_eq!(config.focused_border(), &Color::try_from("#cc241d").unwrap());
-    /// ```
-    #[derive(Clone, Debug, PartialEq)]
-    Config;
-
-    /// Builder struct for generating user [Config]
-    ///
-    /// # Example
-    /// ```
-    /// use penrose::core::{config::Config, layout::{LayoutConf, Layout, side_stack, monocle}};
-    ///
-    /// fn my_layouts() -> Vec<Layout> {
-    ///     let mono_conf = LayoutConf {
-    ///         follow_focus: true,
-    ///         gapless: true,
-    ///         ..Default::default()
-    ///     };
-    ///     let n_main = 1;
-    ///     let ratio = 0.6;
-    ///
-    ///     vec![
-    ///         Layout::new("[side]", LayoutConf::default(), side_stack, n_main, ratio),
-    ///         Layout::new("[mono]", mono_conf, monocle, n_main, ratio),
-    ///     ]
-    /// }
-    ///
-    /// let mut config_builder = Config::default().builder();
-    /// let config = config_builder
-    ///     .floating_classes(vec!["rofi", "dmenu", "dunst", "pinentry-gtk-2"])
-    ///     .layouts(my_layouts())
-    ///     .border_px(4)
-    ///     .focused_border("#ebdbb2")
-    ///     .unwrap()
-    ///     .build()
-    ///     .expect("failed to build config");
-    /// ```
-    #[derive(Debug)]
-    ConfigBuilder;
-
+/// The main user facing configuration details.
+///
+/// See [ConfigBuilder] for details of what can be overwritten.
+///
+/// # Example
+/// ```
+/// use penrose::{Config, draw::Color};
+/// use std::convert::TryFrom;
+///
+/// let config = Config::default();
+///
+/// assert_eq!(config.border_px(), &2);
+/// assert_eq!(config.focused_border(), &Color::try_from("#cc241d").unwrap());
+/// ```
+#[derive(Clone, Debug, PartialEq)]
+pub struct Config {
     /// the initial available workspaces.
     ///
     /// # Constraints
     /// You must provide at least one workspace per screen
-    VecImplInto workspaces: String; => vec!["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    pub workspaces: Vec<String>,
 
     /// the window classes that will always be considered floating
-    VecImplInto floating_classes: String; => vec!["dmenu", "dunst"];
+    pub floating_classes: Vec<String>,
 
     /// the [Layout] functions to be used by each [Workspace][crate::core::workspace::Workspace]
     ///
     /// # Constraints
     /// You must provide at least one layout function
-    Concrete layouts: Vec<Layout>; =>
-        vec![
-            Layout::new("[side]", LayoutConf::default(), side_stack, 1, 0.6),
-            Layout::floating("[----]"),
-        ];
+    pub layouts: Vec<Layout>,
 
     /// the focused border color as a hex literal
-    ImplTry DrawError; focused_border: Color; => "#cc241d";
+    pub focused_border: Color,
     /// the unfocused border color as a hex literal
-    ImplTry DrawError; unfocused_border: Color; => "#3c3836";
+    pub unfocused_border: Color,
     /// the border width of each window in pixels
-    Concrete border_px: u32; => 2;
+    pub border_px: u32,
     /// the gap between tiled windows in pixels
-    Concrete gap_px: u32; => 5;
+    pub gap_px: u32,
     /// the percentage of the screen to grow the main region by when incrementing
-    Concrete main_ratio_step: f32; => 0.05;
+    pub main_ratio_step: f32,
     /// whether or not space should be reserved for a status bar
-    Concrete show_bar: bool; => true;
-    /// whether or not the reserved space for a status bar is at the top of the sceen
-    Concrete top_bar: bool; => true;
+    pub show_bar: bool,
+    /// whether or not the reserved space for a status bar is at the top of the screen
+    pub top_bar: bool,
     /// the height of the space to be reserved for a status bar in pixels
-    Concrete bar_height: u32; => 18;
+    pub bar_height: u32,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            workspaces: vec!["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+                .into_iter()
+                .map(|s| s.to_string())
+                .collect(),
+            floating_classes: vec!["dmenu", "dunst"]
+                .into_iter()
+                .map(|s| s.to_string())
+                .collect(),
+            layouts: vec![
+                Layout::new("[side]", LayoutConf::default(), side_stack, 1, 0.6),
+                Layout::floating("[----]"),
+            ],
+            focused_border: "#cc241d".try_into().unwrap(),
+            unfocused_border: "#3c3836".try_into().unwrap(),
+            border_px: 2,
+            gap_px: 5,
+            main_ratio_step: 0.05,
+            show_bar: true,
+            top_bar: true,
+            bar_height: 18,
+        }
+    }
 }
 
 impl Config {
@@ -100,22 +87,27 @@ impl Config {
     pub fn ws_range(&self) -> std::ops::Range<usize> {
         1..(self.workspaces.len() + 1)
     }
-}
 
-impl ConfigBuilder {
-    fn validate(&self) -> std::result::Result<(), String> {
-        if self.inner.workspaces.is_empty() {
-            return Err("Must supply at least one workspace name".into());
+    /// Validates the configuration and returns an error if it is invalid
+    pub fn validate(self) -> Result<Self, PenroseError> {
+        if self.workspaces.is_empty() {
+            return Err(PenroseError::InvalidConfig(
+                "workspaces must not be empty".to_string(),
+            ));
         }
 
-        if self.inner.layouts.is_empty() {
-            return Err("Must supply at least one layout function".into());
+        if self.layouts.is_empty() {
+            return Err(PenroseError::InvalidConfig(
+                "layouts must not be empty".to_string(),
+            ));
         }
 
-        if !(0.0..=1.0).contains(&self.inner.main_ratio_step) {
-            return Err("main_ratio_step must be in the range 0.0 -> 1.0".into());
+        if !(0.0..=1.0).contains(&self.main_ratio_step) {
+            return Err(PenroseError::InvalidConfig(
+                "main_ratio_step must be between 0.0 and 1.0".to_string(),
+            ));
         }
 
-        Ok(())
+        Ok(self)
     }
 }

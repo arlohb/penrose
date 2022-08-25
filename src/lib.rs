@@ -177,6 +177,10 @@ pub use crate::xcb::{new_xcb_backed_window_manager, XcbConnection};
 /// Enum to store the various ways that operations can fail in Penrose
 #[derive(thiserror::Error, Debug)]
 pub enum PenroseError {
+    /// The given config is invalid.
+    #[error("The given config was invalid")]
+    InvalidConfig(String),
+
     /// Something went wrong using the [draw] module.
     ///
     /// See [DrawError][crate::draw::DrawError] for variants.
