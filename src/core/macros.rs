@@ -387,19 +387,6 @@ macro_rules! __private {
         );
     };
 
-    // TODO: remove this target in 0.2.2
-    {   @parsekey $map:expr, $codes:expr, $parse:expr,
-        [ $($patt:expr,)* ], [ $(($($template:expr),+; $($name:expr),+)),* ],
-        $(refmap)? $(map)? [ $from:expr ] in { $($binding:expr => $method:ident [ $to:expr ];)+ };
-        $($tail:tt)*
-    } => {
-        compile_error!(
-            "the '(ref)map [ <impl Iterator> ] in { ... }' pattern is deprecated: please use \
-            'map: { ... } to <impl Iterator> => { ... }' instead. Examples are available in \
-            the documentation for the 'gen_keybindings' macro."
-        )
-    };
-
     // base case (should be out of tokens)
     {   @parsekey $map:expr, $codes:expr, $parse:expr,
         [ $($patt:expr,)* ], [ $(($($template:expr),+; $($name:expr),+)),* ],
