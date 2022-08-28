@@ -14,7 +14,7 @@ use crate::{
     ErrorHandler, PenroseError, Result,
 };
 use nix::sys::signal::{signal, SigHandler, Signal};
-use std::{cell::Cell, fmt};
+use std::fmt;
 use tracing::Level;
 
 mod clients;
@@ -30,6 +30,8 @@ use event::EventAction;
 use layout::{apply_layout, layout_visible};
 use screens::Screens;
 use workspaces::Workspaces;
+
+use super::hooks::HooksVec;
 
 /// WindowManager is the primary struct / owner of the event loop for penrose.
 ///
@@ -55,7 +57,10 @@ pub struct WindowManager<X: XConn> {
     pub(super) clients: Clients,
     pub(super) screens: Screens,
     pub(super) workspaces: Workspaces,
-    pub(super) hooks: Cell<Hooks<X>>,
+    /// The hooks.
+    ///
+    /// Will only be None while a hook is running.
+    pub(super) hooks: Option<Hooks<X>>,
     pub(super) previous_workspace: usize,
     pub(super) running: bool,
     pub(super) error_handler: ErrorHandler,
@@ -80,7 +85,7 @@ impl<X: XConn> fmt::Debug for WindowManager<X> {
 impl<X: XConn> WindowManager<X> {
     /// Construct a new window manager instance using a chosen [XConn] backed to communicate
     /// with the X server.
-    pub fn new(config: Config, conn: X, hooks: Hooks<X>, error_handler: ErrorHandler) -> Self {
+    pub fn new(config: Config, conn: X, hooks: HooksVec<X>, error_handler: ErrorHandler) -> Self {
         let layouts = config.layouts.clone();
 
         trace!("building initial workspaces");
@@ -103,7 +108,7 @@ impl<X: XConn> WindowManager<X> {
             screens,
             workspaces,
             previous_workspace: 0,
-            hooks: Cell::new(hooks),
+            hooks: Some(Hooks::new(hooks)),
             running: false,
             hydrated: true,
             error_handler,
@@ -157,49 +162,46 @@ impl<X: XConn> WindowManager<X> {
     fn run_hook(&mut self, hook_name: HookName) {
         use HookName::*;
 
-        // Relies on all hooks taking &mut WindowManager as the first arg.
-        macro_rules! run_hooks {
-            ($method:ident, $_self:expr, $($arg:expr),*) => {
-                {
-                    debug!(target: "hooks", "Running {} hooks", stringify!($method));
-                    let mut hooks = $_self.hooks.replace(vec![]);
-                    let res = hooks.iter_mut().try_for_each(|h| h.$method($_self, $($arg),*));
-                    $_self.hooks.replace(hooks);
-                    if let Err(e) = res {
-                        ($_self.error_handler)(e);
-                    }
-                }
-            };
-        }
+        let mut hooks = self.hooks.take().unwrap();
 
-        match hook_name {
-            Startup => run_hooks!(startup, self,),
-            NewClient(id) => run_hooks!(new_client, self, id),
-            RemoveClient(id) => run_hooks!(remove_client, self, id),
-            ClientAddedToWorkspace(id, wix) => run_hooks!(client_added_to_workspace, self, id, wix),
-            ClientNameUpdated(id, name, is_root) => {
-                run_hooks!(client_name_updated, self, id, &name, is_root);
+        let result = match hook_name {
+            Startup => hooks.run_on_hook(|h| h.startup(self)),
+            NewClient(id) => hooks.run_on_hook(|h| h.new_client(self, id)),
+            RemoveClient(id) => hooks.run_on_hook(|h| h.remove_client(self, id)),
+            ClientAddedToWorkspace(id, wix) => {
+                hooks.run_on_hook(|h| h.client_added_to_workspace(self, id, wix))
             }
-            LayoutApplied(wix, i) => run_hooks!(layout_applied, self, wix, i),
+            ClientNameUpdated(id, name, is_root) => {
+                hooks.run_on_hook(|h| h.client_name_updated(self, id, &name, is_root))
+            }
+            LayoutApplied(wix, scix) => hooks.run_on_hook(|h| h.layout_applied(self, wix, scix)),
             LayoutChange(wix) => {
                 let i = self.active_screen_index();
-                run_hooks!(layout_change, self, wix, i);
+                hooks.run_on_hook(|h| h.layout_change(self, wix, i))
             }
-            WorkspaceChange(active, index) => run_hooks!(workspace_change, self, active, index),
+            WorkspaceChange(active, index) => {
+                hooks.run_on_hook(|h| h.workspace_change(self, active, index))
+            }
             WorkspacesUpdated(names, wix) => {
-                run_hooks!(workspaces_updated, self, str_slice!(names), wix)
+                hooks.run_on_hook(|h| h.workspaces_updated(self, str_slice!(names), wix))
             }
             ScreenChange => {
                 let i = self.screens.focused_index();
-                run_hooks!(screen_change, self, i);
+                hooks.run_on_hook(|h| h.screen_change(self, i))
             }
             ScreenUpdated => {
                 let regions = self.screens.inner.vec_map(|s| s.region(false));
-                run_hooks!(screens_updated, self, &regions);
+                hooks.run_on_hook(|h| h.screens_updated(self, &regions))
             }
-            RanderNotify => run_hooks!(randr_notify, self,),
-            FocusChange(root) => run_hooks!(focus_change, self, root),
-            EventHandled => run_hooks!(event_handled, self,),
+            RanderNotify => hooks.run_on_hook(|h| h.randr_notify(self)),
+            FocusChange(root) => hooks.run_on_hook(|h| h.focus_change(self, root)),
+            EventHandled => hooks.run_on_hook(|h| h.event_handled(self)),
+        };
+
+        self.hooks = Some(hooks);
+
+        if let Err(e) = result {
+            (self.error_handler)(e);
         }
     }
 

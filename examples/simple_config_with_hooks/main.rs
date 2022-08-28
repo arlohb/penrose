@@ -17,7 +17,7 @@ use penrose::{
     core::{
         config::Config,
         helpers::index_selectors,
-        hooks::Hook,
+        hooks::{Hook, HooksVec},
         layouts::{bottom_stack, paper, side_stack},
         manager::WindowManager,
         ring::Selector,
@@ -25,7 +25,7 @@ use penrose::{
         Layout, LayoutConf,
     },
     logging_error_handler,
-    xcb::{XcbConnection, XcbHooks},
+    xcb::XcbConnection,
     Backward, Forward, Less, More, Result,
 };
 
@@ -117,7 +117,7 @@ fn main() -> Result<()> {
     // trigger the bound scratchpad client.
     let sp = Scratchpad::new("st", 0.8, 0.8);
 
-    let hooks: XcbHooks = vec![
+    let hooks: HooksVec<_> = vec![
         Box::new(MyClientHook {}),
         // Using a simple contrib hook that takes no config. By convention, contrib hooks have a 'new'
         // method that returns a boxed instance of the hook with any configuration performed so that it

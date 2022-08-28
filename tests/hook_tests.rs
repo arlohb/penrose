@@ -7,7 +7,7 @@ use penrose::{
         client::Client,
         config::Config,
         data_types::Region,
-        hooks::{Hook, Hooks},
+        hooks::{Hook, HooksVec},
         manager::WindowManager,
         screen::Screen,
         xconnection::{Atom, Prop, PropertyEvent, Result, XConn, XError, XEvent, Xid},
@@ -172,7 +172,7 @@ test_cases! {
 
     body: {
         let calls = Rc::new(RefCell::new(vec![]));
-        let hooks: Hooks<TestXConn> = vec![Box::new(TestHook {
+        let hooks: HooksVec<TestXConn> = vec![Box::new(TestHook {
             method,
             calls: Rc::clone(&calls),
         })];

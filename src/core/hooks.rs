@@ -116,6 +116,7 @@
 //! [2]: crate::contrib::extensions::scratchpad::Scratchpad
 //! [3]: crate::core::xconnection::XEvent
 //! [4]: crate::core::client::Client
+
 use crate::{
     core::{
         data_types::Region,
@@ -150,7 +151,31 @@ pub enum HookName {
 }
 
 /// Utility type for defining hooks in your penrose configuration.
-pub type Hooks<X> = Vec<Box<dyn Hook<X>>>;
+pub type HooksVec<X> = Vec<Box<dyn Hook<X>>>;
+
+/// Contains all the registered hooks for a particular [WindowManager].
+#[allow(missing_debug_implementations)]
+pub struct Hooks<X: XConn> {
+    pub(crate) hooks: Vec<Box<dyn Hook<X>>>,
+}
+
+impl<X: XConn> Hooks<X> {
+    /// Creates a new [Hooks] struct with the given hooks.
+    pub fn new(hooks: Vec<Box<dyn Hook<X>>>) -> Self {
+        Self { hooks }
+    }
+
+    /// Run the given callback on all of the hooks.
+    pub fn run_on_hook(&mut self, mut f: impl FnMut(&mut dyn Hook<X>) -> Result<()>) -> Result<()> {
+        for hook in self.hooks.iter_mut() {
+            if let Err(e) = f(hook.as_mut()) {
+                return Err(e);
+            }
+        }
+
+        Ok(())
+    }
+}
 
 /// User defined functionality triggered by [WindowManager] actions.
 ///

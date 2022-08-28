@@ -11,7 +11,7 @@ use penrose::{
         bindings::KeyEventHandler,
         config::Config,
         helpers::index_selectors,
-        hooks::Hooks,
+        hooks::HooksVec,
         layouts::{bottom_stack, paper, side_stack},
         xconnection::XConn,
         Layout, LayoutConf,
@@ -68,7 +68,7 @@ fn main() -> Result<()> {
 
     let sp = Scratchpad::new("st", 0.8, 0.8);
 
-    let hooks: Hooks<_> = vec![
+    let hooks: HooksVec<_> = vec![
         LayoutSymbolAsRootName::new(),
         RemoveEmptyWorkspaces::new(config.workspaces.clone()),
         DefaultWorkspace::new("1term", "[side]", vec!["st"]),

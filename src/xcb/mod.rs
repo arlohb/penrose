@@ -25,12 +25,7 @@
 //! [9]: crate::xcb::XcbDraw
 //! [10]: https://www.mankier.com/package/libxcb-devel
 use crate::{
-    core::{
-        config::Config,
-        hooks::{Hook, Hooks},
-        manager::WindowManager,
-        xconnection::Xid,
-    },
+    core::{config::Config, hooks::Hook, manager::WindowManager, xconnection::Xid},
     ErrorHandler,
 };
 
@@ -58,10 +53,6 @@ pub type XcbGenericEvent = xcb::Event<xcb::ffi::base::xcb_generic_event_t>;
 
 /// Result type for fallible methods using XCB
 pub type Result<T> = std::result::Result<T, XcbError>;
-
-/// Helper type for when you are defining your [Hook] vector in your main.rs when using
-/// the default XCB impls
-pub type XcbHooks = Hooks<XcbConnection>;
 
 /// Construct a penrose [WindowManager] backed by the default [xcb][crate::xcb] backend.
 pub fn new_xcb_backed_window_manager(
